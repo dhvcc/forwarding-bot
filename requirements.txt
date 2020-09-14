@@ -1,0 +1,6 @@
+# VK framework
+vkbottle
+# Faster event loop
+uvloop
+# Async requests
+aiohttp

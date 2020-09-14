@@ -1,0 +1,7 @@
+pre-commit
+
+flake8
+autoflake
+autopep8
+pyupgrade
+reorder-python-imports
