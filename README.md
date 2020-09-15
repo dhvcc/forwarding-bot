@@ -1,4 +1,4 @@
-# Not really scalable, but straightforward VK to TG message transfer bot
+# Not really scalable, but straightforward one-way VK->TG message transfer bot
 
 Transfer VK conversation messages to TG
 
@@ -8,7 +8,7 @@ Transfer VK conversation messages to TG
 
 2. Initialize virtual environment `./init/venv.sh` or `virtualenv venv` `source venv/bin/activate` `pip install -r requirements.txt`
 
-3. Set `transfer_bot/config` variables (not using env and services for simplicity)
+3. Set `config.json` variables (copy `config_sample.json`)
 
 4. Run the module `source venv/bin/activate` `python -m transfer_bot`
 

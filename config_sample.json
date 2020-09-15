@@ -1,0 +1,10 @@
+{
+  "VK": {
+    "GROUP_TOKEN": "",
+    "SOURCE_CONVERSATION_ID": 0
+  },
+  "TG": {
+    "BOT_TOKEN": "",
+    "DESTINATION_CONVERSATION_ID": 0
+  }
+}

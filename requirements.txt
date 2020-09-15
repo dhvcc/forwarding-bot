@@ -1,6 +1,8 @@
 # VK framework
 vkbottle
-# Faster event loop
-uvloop
 # Async requests
-aiohttp
+aiohttp[speedups]
+
+# Speedups
+uvloop
+ujson
