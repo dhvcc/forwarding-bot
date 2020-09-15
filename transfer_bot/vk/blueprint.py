@@ -21,6 +21,7 @@ bot_bp = Blueprint()
 api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/"
 message_text_template = "<em>{sender}</em>:\n" \
                         "<strong>{text}</strong>"
+parse_mode = "HTML"
 
 
 class BadVibeException(Exception):
@@ -52,7 +53,7 @@ class Utils:
         return {
             "random_id": bot_bp.extension.random_id(),
             "chat_id": DCI,
-            "parse_mode": "HTML"
+            "parse_mode": parse_mode
         }
 
     @staticmethod
@@ -104,6 +105,7 @@ class AttachmentHandlers:
                 media.append({
                     "type": attach.type,
                     "media": source.url,
+                    "parse_mode": parse_mode
                 })
             else:
                 documents.append(attach.doc)
@@ -114,7 +116,7 @@ class AttachmentHandlers:
             response = await session.get(api_url + "sendMediaGroup", params=request_params)
             await sleep(0.1)
             await Utils.vibe_check(response)
-        else:
+        if documents:
             bad_vibe = False
             if not media:
                 request_params["caption"] = tg_message
