@@ -1,4 +1,4 @@
-from transfer_bot.vk.bot import VKBot
+from .vk.bot import VKBot
 
 
 def main():

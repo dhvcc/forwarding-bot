@@ -2,9 +2,9 @@ import logging
 
 from vkbottle import Bot
 
-from transfer_bot.config.vk import GROUP_TOKEN
-from transfer_bot.vk.blueprint import bot_bp
-from transfer_bot.vk.middleware import middleware_bp
+from ..config.vk import GROUP_TOKEN
+from ..vk.blueprint import bot_bp
+from ..vk.middleware import middleware_bp
 
 logger = logging.getLogger()
 

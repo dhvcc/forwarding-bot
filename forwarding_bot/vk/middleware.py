@@ -2,7 +2,7 @@ from vkbottle.bot import Blueprint
 from vkbottle.bot import Message
 from vkbottle.ext import Middleware
 
-from transfer_bot.config.vk import SOURCE_CONVERSATION_ID as SCI
+from ..config.vk import SOURCE_CONVERSATION_ID as SCI
 
 middleware_bp = Blueprint()
 

@@ -10,9 +10,9 @@ from vkbottle.bot import Blueprint
 from vkbottle.bot import Message
 from vkbottle.types.objects.docs import Doc
 
-from transfer_bot.config.tg import BOT_TOKEN
-from transfer_bot.config.tg import DESTINATION_CONVERSATION_ID as DCI
-from transfer_bot.config.vk import GROUP_TOKEN
+from ..config.tg import BOT_TOKEN
+from ..config.tg import DESTINATION_CONVERSATION_ID as DCI
+from ..config.vk import GROUP_TOKEN
 
 logger = logging.getLogger()
 
