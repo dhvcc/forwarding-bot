@@ -1,4 +1,4 @@
-from .vk.bot import VKBot
+from forwarding_bot.vk import VKBot
 
 
 def main():

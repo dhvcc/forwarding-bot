@@ -1,8 +1,0 @@
-# VK framework
-vkbottle
-# Async requests
-aiohttp[speedups]
-
-# Speedups
-uvloop
-ujson

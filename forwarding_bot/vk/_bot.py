@@ -2,16 +2,16 @@ import logging
 
 from vkbottle import Bot
 
-from ..config.vk import GROUP_TOKEN
-from ..vk.blueprint import bot_bp
-from ..vk.middleware import middleware_bp
+from forwarding_bot.config import data_config
+from ._blueprint import bot_bp
+from forwarding_bot.vk._middleware import middleware_bp
 
 logger = logging.getLogger()
 
 
 class VKBot:
     def __init__(self):
-        self.bot = Bot(GROUP_TOKEN, debug="DEBUG")
+        self.bot = Bot(data_config.group_token, debug="DEBUG")
         self.bot.set_blueprints(middleware_bp, bot_bp)
 
     def start(self) -> None:

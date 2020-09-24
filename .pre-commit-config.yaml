@@ -31,16 +31,6 @@ repos:
         args: [--in-place, --max-line-length=99]
         stages: [commit]
 
-      - id: reorder-python-imports
-        name: reorder-python-imports
-        entry: reorder-python-imports
-        language: system
-        types: [python]
-        args:
-          - --separate-relative
-          - --py37-plus
-        stages: [commit]
-
       - id: flake8
         name: flake8 check
         entry: flake8
@@ -50,4 +40,5 @@ repos:
         args:
           - forwarding_bot/
           - --max-line-length=120
+          - --exclude=__init__.py
         stages: [push]
