@@ -19,4 +19,4 @@ class VKBot:
         try:
             self.bot.run_polling(skip_updates=True)
         except Exception as e:
-            logger.exception(f"VK bot crashed. {str(e)}")
+            logger.exception(f"VK bot crashed. {e}")
