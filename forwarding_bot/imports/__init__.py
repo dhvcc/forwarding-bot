@@ -1,1 +1,2 @@
-from .json import json
+"""Import speedup replacement parsing module"""
+from ._json import json

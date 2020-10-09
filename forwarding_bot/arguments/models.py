@@ -1,7 +1,4 @@
-import argparse
-
-
-class ArgsModel(argparse.Namespace):
+class ArgsModel:
     """Argparse output namespace schema to make linters work"""
     bot_token: str
     group_token: str

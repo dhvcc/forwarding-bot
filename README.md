@@ -4,6 +4,11 @@
 [![Downloads](https://pepy.tech/badge/forwarding-bot/month)](https://pepy.tech/project/forwarding-bot/month)
 [![Downloads](https://pepy.tech/badge/forwarding-bot/week)](https://pepy.tech/project/forwarding-bot/week)
 
+[![PyPI version](https://img.shields.io/pypi/v/forwarding-bot)](https://pypi.org/project/forwarding-bot)
+[![Python versions](https://img.shields.io/pypi/pyversions/forwarding-bot)](https://pypi.org/project/forwarding-bot)
+[![Wheel status](https://img.shields.io/pypi/wheel/forwarding-bot)](https://pypi.org/project/forwarding-bot)
+[![License](https://img.shields.io/pypi/l/forwarding-bot?color=success)](https://github.com/dhvcc/forwarding-bot/blob/master/LICENSE)
+
 [![Code checks](https://github.com/dhvcc/forwarding-bot/workflows/Code%20checks/badge.svg)](https://github.com/dhvcc/forwarding-bot/actions?query=workflow%3A%22Code+checks%22)
 [![Pypi publish](https://github.com/dhvcc/forwarding-bot/workflows/Publish%20Package%20to%20PyPI/badge.svg)](https://github.com/dhvcc/forwarding-bot/actions?query=workflow%3A%22Publish+Package+to+PyPI%22)
 

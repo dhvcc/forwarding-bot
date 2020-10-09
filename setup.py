@@ -27,8 +27,8 @@ setup(
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=[
-        "vkbottle",
-        "aiohttp"
+        "vkbottle==2.7.11",
+        "aiohttp",
     ],
     extras_require={
         "speedups": [
@@ -52,9 +52,11 @@ setup(
     },
     classifiers=[
         "Natural Language :: English",
+        "Natural Language :: Russian",
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
         "License :: OSI Approved :: MIT License",
+        "Typing :: Typed",
         "Development Status :: 5 - Production/Stable",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.7",

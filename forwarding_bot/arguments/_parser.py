@@ -1,5 +1,8 @@
 import argparse
+
 from forwarding_bot.__version__ import __version__
+from .models import ArgsModel
+from typing import Union
 
 
 class ArgParser:
@@ -9,7 +12,7 @@ class ArgParser:
             add_help=True)
         self.parser.add_argument("--version", help="print version info",
                                  action="version",
-                                 version=f"rss-reader {__version__}")
+                                 version=f"forwarding-bot {__version__}")
         self.parser.add_argument("-b", "--bot-token", help="TG bot token",
                                  type=str)
         self.parser.add_argument("-g", "--group-token", help="VK group token",
@@ -19,5 +22,6 @@ class ArgParser:
         self.parser.add_argument("-d", "--destination-id", help="TG destination conversation id",
                                  type=int)
 
-    def get_args(self):
+    def get_args(self) -> Union[argparse.Namespace, ArgsModel]:
+        """Using namespace because it is in fact a Namespace, but linting should be according to ArgsModel"""
         return self.parser.parse_args()

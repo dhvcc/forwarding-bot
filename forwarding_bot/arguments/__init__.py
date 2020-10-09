@@ -1,4 +1,5 @@
-from .parser import ArgParser
+"""Cli argument parsing module which is used by the DatConfig class"""
+from ._parser import ArgParser
 from .models import ArgsModel
 
 args_parsed = False
