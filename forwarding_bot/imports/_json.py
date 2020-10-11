@@ -1,6 +1,6 @@
 import pkg_resources
 
-SUPPORTED_MODULES = ["ujson", "hyperjson"]  # In speed increase order
+SUPPORTED_MODULES = ["ujson", ]  # In speed increase order
 DOWNLOADED = [
     pkg.key for pkg in pkg_resources.working_set if pkg.key in SUPPORTED_MODULES
 ]

@@ -1,8 +1,7 @@
 from forwarding_bot.vk import VKBot
 
 
-# TODO: Add voice message support
-# TODO: Add forwarded message support
+# TODO: Add reply message support
 
 def main():
     vk_bot = VKBot()

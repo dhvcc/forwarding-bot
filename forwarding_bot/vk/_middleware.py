@@ -20,5 +20,5 @@ class NoTextMiddleware(Middleware):
     """A middleware that skips empty messages i.e. kicks, invites and other"""
 
     async def pre(self, message: Message, *args):
-        if not message.text and not message.attachments:
+        if not message.text and not message.attachments and not message.fwd_messages and not message.reply_message:
             return False
