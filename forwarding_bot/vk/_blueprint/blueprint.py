@@ -5,8 +5,8 @@ import aiohttp
 from vkbottle.bot import Blueprint, Message
 
 from forwarding_bot.config import data_config
-from . import attachment_handlers
-from . import utils
+from . import attachment_handlers, fwd_handlers
+from .helpers import MessageHelper, RequestHelper, BadDoctypeError
 
 logger = logging.getLogger("forwarding-bot")
 
@@ -15,14 +15,16 @@ bot_bp = Blueprint()
 
 @bot_bp.on.chat_message()
 async def handler(message: Message) -> None:
-    """Default handler that catches any message"""
+    """Default handler that handles every message"""
+    # TODO: make handlers return response to check it once
+    request_params = RequestHelper.get_params(bot=bot_bp)
 
-    sender = await utils.get_sender(data_config.group_token, message)
-    request_params = utils.basic_params(bot=bot_bp)
-    formatted_message = utils.format_message(sender, message)
-    attachments = utils.get_valid_attachments(message)
-
-    async with aiohttp.ClientSession() as session:
+    session = aiohttp.ClientSession()
+    if not message.fwd_messages:
+        sender = await MessageHelper.get_sender(data_config.group_token, message)
+        formatted_message = "{}:\n{}".format(MessageHelper.get_name(
+            sender), MessageHelper.get_text(message.text))
+        attachments = MessageHelper.get_valid_attachments(message)
         try:
             if not attachments:
                 await attachment_handlers.no_attachments(
@@ -44,6 +46,13 @@ async def handler(message: Message) -> None:
                     formatted_message,
                     attachments
                 )
-        except utils.BadDoctypeError as e:
+        except BadDoctypeError as e:
             await message(str(e))
+    else:
+        await fwd_handlers.handle_fwd(
+            session,
+            request_params,
+            message
+        )
+    await session.close()
     await sleep(0.1)
