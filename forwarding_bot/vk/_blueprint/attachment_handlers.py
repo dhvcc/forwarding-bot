@@ -41,17 +41,16 @@ async def one_attachment(
         response = await session.get(api_url + "sendMessage", params=request_params)
         await RequestHelper.response_check(response)
     elif msg_attachment.type == "photo":
-        photo = msg_attachment.photo
-        source = max(photo.sizes, key=lambda size: size.width)
-        request_params["photo"] = source.url
         request_params["caption"] = message_text
-        response = await session.get(api_url + "sendPhoto", params=request_params)
+        response = await RequestHelper.send_photo(session=session,
+                                                  photo=msg_attachment.photo,
+                                                  params=request_params)
         await RequestHelper.response_check(response)
     elif msg_attachment.type == "audio_message":
-        voice = msg_attachment.audio_message
         request_params["caption"] = message_text
-        request_params["voice"] = voice.link_ogg
-        response = await session.get(api_url + "sendVoice", params=request_params)
+        response = await RequestHelper.send_voice(session=session,
+                                                  voice=msg_attachment.audio_message,
+                                                  params=request_params)
         await RequestHelper.response_check(response)
     else:
         request_params["caption"] = message_text

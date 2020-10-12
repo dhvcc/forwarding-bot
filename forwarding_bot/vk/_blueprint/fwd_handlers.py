@@ -1,10 +1,9 @@
 import logging
 from collections import namedtuple
-from typing import Dict
-from typing import List
+from typing import Dict, List
 
 from aiohttp import ClientSession
-from vkbottle.types.objects.messages import Message
+from vkbottle.types.objects.messages import Message, MessageAttachment
 from vkbottle.types.objects.users import UserXtrCounters
 
 from forwarding_bot.config import data_config
@@ -12,6 +11,11 @@ from .helpers import MessageHelper, RequestHelper
 from .settings import api_url
 
 logger = logging.getLogger("forwarding-bot")
+
+ATTACH_INFO = {
+    "photo": {"name": "фото", "handler": RequestHelper.send_photo, "selector": lambda a: a.photo},
+    "doc": {"name": "документ", "handler": RequestHelper.send_document, "selector": lambda a: a.doc}
+}
 
 
 async def handle_fwd(
@@ -22,9 +26,9 @@ async def handle_fwd(
     """Handle nested forwarded messages"""
     # TODO: Add logging
     # TODO: Add photo, document, voice support
-    # TODO: Add HTML multicolor for senders and bold red for docs and photos
     sender_cache: Dict[int, UserXtrCounters] = {}
-    ParsedMessage = namedtuple("ParsedMessage", "sender text indent")
+    ParsedMessage = namedtuple("ParsedMessage", "sender text attachments indent")
+    attachments: List[MessageAttachment] = []
     result: List[ParsedMessage] = []
 
     async def walk_message_tree(node: Message, depth: int = 0):
@@ -36,7 +40,8 @@ async def handle_fwd(
 
         result.append(ParsedMessage(
             MessageHelper.get_name(sender),
-            MessageHelper.get_text(node.text),
+            node.text,
+            MessageHelper.get_valid_attachments(node),
             depth
         ))
 
@@ -46,16 +51,42 @@ async def handle_fwd(
 
     await walk_message_tree(message)
 
+    def parse_text(message_: ParsedMessage) -> str:
+        if not message_.text and not message_.attachments:
+            return ""
+        if message_.text:
+            text = "    " * message_.indent + MessageHelper.get_text(message_.text) + "\n"
+        else:
+            text = ""
+        for attach_ in message_.attachments:
+            attachments.append(attach_)
+            text += '{indent}<u>{{{name}_{id}}}</u>\n'.format(indent="    " * msg.indent,
+                                                              name=ATTACH_INFO[attach_.type]["name"],
+                                                              id=len(attachments))
+        return text
+
     message_text = ""
     for msg in result:
-        message_text += "{indent}{sender}:\n{indent}{text}".format(
+        message_text += "{indent}{sender}:\n{text}".format(
             # Replaced tab with 4 spaces to add indent consistency
             indent="    " * msg.indent,
             sender=msg.sender,
             # Avoid \n on empty text
-            text=msg.text + "\n" if msg.text else ""
+            text=parse_text(msg)
         )
 
     request_params["text"] = message_text
     response = await session.get(api_url + "sendMessage", params=request_params)
     await RequestHelper.response_check(response)
+
+    request_params.pop("text")
+
+    for num, attach in enumerate(attachments, 1):
+        try:
+            info = ATTACH_INFO[str(attach.type)]
+        except KeyError:
+            continue
+        request_params["caption"] = "{{{name}_{id}}}".format(name=info["name"],
+                                                             id=num)
+        response = await info["handler"](session, info["selector"](attach), request_params)
+        await RequestHelper.response_check(response)

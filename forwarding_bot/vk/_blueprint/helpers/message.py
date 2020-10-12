@@ -25,6 +25,14 @@ class MessageHelper:
         ]
 
     @staticmethod
+    def filter_media(attachments: List[MessageAttachment]) -> List[MessageAttachment]:
+        return [
+            attach
+            for attach in attachments
+            if attach.type in ("photo", "video")
+        ]
+
+    @staticmethod
     async def get_sender(token: str, message: Message) -> UserXtrCounters:
         api = API(token)
         user_list = await api.users.get(user_ids=str(message.from_id))
