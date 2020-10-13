@@ -3,6 +3,7 @@ from asyncio import sleep
 
 import aiohttp
 from vkbottle.bot import Blueprint, Message
+from vkbottle.api import API
 
 from forwarding_bot.config import data_config
 from . import attachment_handlers, fwd_handlers
@@ -16,7 +17,11 @@ bot_bp = Blueprint()
 @bot_bp.on.chat_message()
 async def handler(message: Message) -> None:
     """Default handler that handles every message"""
-    # TODO: make handlers return response to check it once
+    api = API(data_config.group_token)
+    # Workaround to avoid VK event ignoring attachments
+    message_data = (await api.messages.get_by_id(message_ids=message.id)).items[0]
+    message.attachments = message_data.attachments
+    #
     request_params = RequestHelper.get_params(bot=bot_bp)
 
     session = aiohttp.ClientSession()

@@ -61,7 +61,6 @@ class RequestHelper:
         pass
         # params = params.copy()
         # media = MessageHelper.filter_media(attachments)
-        # TODO: filter separate captions
         # logger.debug(f"Sending media group")
         # return await session.get(api_url + "sendMediaGroup", params=params)
 

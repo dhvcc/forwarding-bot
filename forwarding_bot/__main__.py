@@ -1,7 +1,11 @@
 from forwarding_bot.vk import VKBot
 
 
-# TODO: Add reply message support
+# TODO: Rewrite using vkbottle v3.0
+# TODO: Use aiogram instead of plain aiohttp
+# TODO: add verbose logging
+
+# TODO: Add reply message support (only text)
 
 def main():
     vk_bot = VKBot()

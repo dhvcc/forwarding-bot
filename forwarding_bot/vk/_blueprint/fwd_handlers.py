@@ -1,5 +1,4 @@
 import logging
-from collections import namedtuple
 from typing import Dict, List
 
 from aiohttp import ClientSession
@@ -9,6 +8,7 @@ from vkbottle.types.objects.users import UserXtrCounters
 from forwarding_bot.config import data_config
 from .helpers import MessageHelper, RequestHelper
 from .settings import api_url
+from typing import NamedTuple
 
 logger = logging.getLogger("forwarding-bot")
 
@@ -16,6 +16,15 @@ ATTACH_INFO = {
     "photo": {"name": "фото", "handler": RequestHelper.send_photo, "selector": lambda a: a.photo},
     "doc": {"name": "документ", "handler": RequestHelper.send_document, "selector": lambda a: a.doc}
 }
+ParsedMessage = NamedTuple(
+    "ParsedMessage",
+    [
+        ("sender", UserXtrCounters),
+        ("text", str),
+        ("attachments", List[MessageAttachment]),
+        ("indent", int)
+    ]
+)
 
 
 async def handle_fwd(
@@ -24,10 +33,8 @@ async def handle_fwd(
         message: Message
 ) -> None:
     """Handle nested forwarded messages"""
-    # TODO: Add logging
-    # TODO: Add photo, document, voice support
     sender_cache: Dict[int, UserXtrCounters] = {}
-    ParsedMessage = namedtuple("ParsedMessage", "sender text attachments indent")
+
     attachments: List[MessageAttachment] = []
     result: List[ParsedMessage] = []
 
@@ -61,7 +68,8 @@ async def handle_fwd(
         for attach_ in message_.attachments:
             attachments.append(attach_)
             text += '{indent}<u>{{{name}_{id}}}</u>\n'.format(indent="    " * msg.indent,
-                                                              name=ATTACH_INFO[attach_.type]["name"],
+                                                              name=ATTACH_INFO[str(
+                                                                  attach_.type)]["name"],
                                                               id=len(attachments))
         return text
 

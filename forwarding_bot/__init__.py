@@ -21,6 +21,4 @@ if not logger.handlers:
     stream.setLevel("DEBUG")
     logger.addHandler(stream)
 
-    # TODO: add file handler
-
     logger.info("=====Bot logger initialized=====")
