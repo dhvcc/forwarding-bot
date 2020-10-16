@@ -95,7 +95,7 @@ The syntax for config is the following:
 ```ini
 [forwarding-bot]
 BOT_TOKEN =
-GROUP_TOKEN =
+USER_TOKEN =
 SOURCE_ID =
 DESTINATION_ID =
 ```

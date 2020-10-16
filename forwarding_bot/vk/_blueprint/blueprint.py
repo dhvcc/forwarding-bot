@@ -2,8 +2,8 @@ import logging
 from asyncio import sleep
 
 import aiohttp
-from vkbottle.bot import Blueprint, Message
 from vkbottle.api import API
+from vkbottle.user import Blueprint, Message
 
 from forwarding_bot.config import data_config
 from . import attachment_handlers, fwd_handlers
@@ -17,16 +17,18 @@ bot_bp = Blueprint()
 @bot_bp.on.chat_message()
 async def handler(message: Message) -> None:
     """Default handler that handles every message"""
-    api = API(data_config.group_token)
-    # Workaround to avoid VK event ignoring attachments
-    message_data = (await api.messages.get_by_id(message_ids=message.id)).items[0]
-    message.attachments = message_data.attachments
-    #
-    request_params = RequestHelper.get_params(bot=bot_bp)
+    api = API(data_config.user_token)
+    if data_config.limited_attachments:
+        # VK attachment limit workaround
+        message_id = message.id
+        message_data = (await api.messages.get_by_id(message_ids=[message_id])).items[0]
+        message.attachments = message_data.attachments
+
+    request_params = RequestHelper.get_params()
 
     session = aiohttp.ClientSession()
     if not message.fwd_messages:
-        sender = await MessageHelper.get_sender(data_config.group_token, message)
+        sender = await MessageHelper.get_sender(data_config.user_token, message)
         formatted_message = "{}:\n{}".format(MessageHelper.get_name(
             sender), MessageHelper.get_text(message.text))
         attachments = MessageHelper.get_valid_attachments(message)

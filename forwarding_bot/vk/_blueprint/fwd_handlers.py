@@ -42,7 +42,7 @@ async def handle_fwd(
         if message.from_id in sender_cache:
             sender = sender_cache[message.from_id]
         else:
-            sender = await MessageHelper.get_sender(data_config.group_token, message)
+            sender = await MessageHelper.get_sender(data_config.user_token, message)
             sender_cache[message.from_id] = sender
 
         result.append(ParsedMessage(

@@ -1,5 +1,5 @@
-from vkbottle.bot import Blueprint, Message
 from vkbottle.ext import Middleware
+from vkbottle.user import Blueprint, Message
 
 from forwarding_bot.config import data_config
 

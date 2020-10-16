@@ -1,17 +1,22 @@
 import logging
-from typing import Union, List
+from random import randint
+from typing import List
 
 from aiohttp import ClientSession, FormData
-from vkbottle.bot import Blueprint
-from vkbottle.bot import Bot
 from vkbottle.types.objects.docs import Doc
-from vkbottle.types.objects.photos import Photo
 from vkbottle.types.objects.messages import AudioMessage, MessageAttachment
+from vkbottle.types.objects.photos import Photo
 
 from forwarding_bot.config import data_config
 from ..settings import parse_mode, api_url
 
 logger = logging.getLogger("forwarding-bot")
+RANGE_MAX = int(2e9)
+
+
+def get_random_id() -> int:
+    """Random id generator"""
+    return randint(1, RANGE_MAX)
 
 
 class BadDoctypeError(Exception):
@@ -23,9 +28,9 @@ class BadDoctypeError(Exception):
 
 class RequestHelper:
     @staticmethod
-    def get_params(bot: Union[Bot, Blueprint]) -> dict:
+    def get_params() -> dict:
         return {
-            "random_id": bot.extension.random_id(),
+            "random_id": get_random_id(),
             "chat_id": data_config.destination_id,
             "parse_mode": parse_mode
         }
