@@ -3,7 +3,6 @@ import argparse
 from forwarding_bot.__version__ import __version__
 from .models import ArgsModel
 from typing import Union
-from distutils.util import strtobool
 
 
 class ArgParser:
@@ -22,9 +21,6 @@ class ArgParser:
                                  type=int)
         self.parser.add_argument("-d", "--destination-id", help="TG destination conversation id",
                                  type=int)
-        self.parser.add_argument('--limited-attachments', help="Limited attachments mode, re-asks for the message "
-                                                               "attachments to ensure attachment parsing",
-                                 type=lambda x: bool(strtobool(x)), nargs='?', const=True, default=None)
 
     def get_args(self) -> Union[argparse.Namespace, ArgsModel]:
         """Using namespace because it is in fact a Namespace, but linting should be according to ArgsModel"""

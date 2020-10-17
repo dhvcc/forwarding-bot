@@ -4,4 +4,3 @@ class ArgsModel:
     user_token: str
     destination_id: str
     source_id: str
-    limited_attachments: bool

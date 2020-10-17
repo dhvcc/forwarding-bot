@@ -27,8 +27,13 @@ setup(
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=[
-        "vkbottle==2.7.11",
+        "vkbottle==v2.7.12",
+        "aiogram",
         "aiohttp",
+        "pytz",
+    ],
+    dependency_links=[
+        "https://github.com/timoniq/vkbottle.git"
     ],
     extras_require={
         "speedups": [

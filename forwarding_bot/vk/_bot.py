@@ -2,7 +2,6 @@ import logging
 
 from vkbottle import User
 
-from forwarding_bot.config import data_config
 from forwarding_bot.vk._middleware import middleware_bp
 from ._blueprint import bot_bp
 
@@ -10,8 +9,8 @@ logger = logging.getLogger("forwarding-bot")
 
 
 class VKBot:
-    def __init__(self):
-        self.bot = User(data_config.user_token, debug="DEBUG")
+    def __init__(self, token: str):
+        self.bot = User(token)
         self.bot.set_blueprints(middleware_bp, bot_bp)
 
     def start(self) -> None:

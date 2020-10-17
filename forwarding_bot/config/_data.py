@@ -21,7 +21,8 @@ class DataConfig:
         self.user_token: Optional[int] = None
         self.destination_id: Optional[int] = None
         self.source_id: Optional[int] = None
-        self.limited_attachments: Optional[bool] = None
+
+        self.parse_mode = "HTML"
 
     def load(
             self,
@@ -45,7 +46,6 @@ class DataConfig:
         self.user_token = arguments.user_token
         self.destination_id = arguments.destination_id
         self.source_id = arguments.source_id
-        self.limited_attachments = arguments.limited_attachments
 
     def load_ini(self, config_: ConfigParser):
         logger.debug("Loading ini config")
@@ -65,9 +65,6 @@ class DataConfig:
 
         if not self.source_id and config.get("SOURCE_ID"):
             self.source_id = config.getint("SOURCE_ID")
-
-        if not self.limited_attachments and "LIMITED_ATTACHMENTS" in config:
-            self.limited_attachments = config.getboolean("LIMITED_ATTACHMENTS")
 
     def load_environ(self, environment):
         logger.debug("Loading environ")

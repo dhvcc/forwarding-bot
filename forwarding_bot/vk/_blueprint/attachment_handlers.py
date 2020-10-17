@@ -1,110 +1,47 @@
 import logging
-from asyncio import sleep
-from typing import Dict, List
 
-from aiohttp import ClientSession
-from vkbottle.types.objects.docs import Doc
+from aiogram import Bot, types
 from vkbottle.types.objects.messages import MessageAttachment
 
-from forwarding_bot.imports import json
-from .helpers import RequestHelper, BadDoctypeError
-from .settings import parse_mode, api_url
+from forwarding_bot.config import data_config
 
 logger = logging.getLogger("forwarding-bot")
 
 
 async def no_attachments(
-        session: ClientSession,
-        request_params: dict,
+        chat_id: int,
         message_text: str
 ):
-    logger.debug("No attachments")
-    if message_text:
-        logger.debug("Got text, sending")
-        request_params["text"] = message_text
-        response = await session.get(api_url + "sendMessage", params=request_params)
-
-        await RequestHelper.response_check(response)
-    else:
-        logger.debug("No text")
+    bot = Bot(data_config.bot_token)
+    await bot.send_message(chat_id=chat_id, text=message_text)
 
 
 async def one_attachment(
-        session: ClientSession,
-        request_params: dict,
+        bot: Bot,
         message_text: str,
         msg_attachment: MessageAttachment,
 ):
     logger.debug(f"One attachment with type {msg_attachment.type}")
     if msg_attachment.type == "sticker":
-        request_params["text"] = message_text + "*sticker*"
-        response = await session.get(api_url + "sendMessage", params=request_params)
-        await RequestHelper.response_check(response)
+        await bot.send_message(chat_id=data_config.destination_id,
+                               text=message_text + "*sticker*",
+                               parse_mode=data_config.parse_mode)
+
     elif msg_attachment.type == "photo":
-        request_params["caption"] = message_text
-        response = await RequestHelper.send_photo(session=session,
-                                                  photo=msg_attachment.photo,
-                                                  params=request_params)
-        await RequestHelper.response_check(response)
+        source = max(msg_attachment.photo.sizes, key=lambda size: size.width)
+        await bot.send_photo(chat_id=data_config.destination_id,
+                             caption=message_text,
+                             photo=source.url,
+                             parse_mode=data_config.parse_mode)
     elif msg_attachment.type == "audio_message":
-        request_params["caption"] = message_text
-        response = await RequestHelper.send_voice(session=session,
-                                                  voice=msg_attachment.audio_message,
-                                                  params=request_params)
-        await RequestHelper.response_check(response)
+        await bot.send_voice(chat_id=data_config.destination_id,
+                             caption=message_text,
+                             voice=msg_attachment.audio_message.link_ogg,
+                             parse_mode=data_config.parse_mode)
     else:
-        request_params["caption"] = message_text
-        doc = msg_attachment.doc
-        response = await RequestHelper.send_document(session=session,
-                                                     doc=doc,
-                                                     params=request_params)
-        if await RequestHelper.response_check(response) is False:
-            raise BadDoctypeError
-
-
-async def more_attachments(
-        session: ClientSession,
-        request_params: dict,
-        message_text: str,
-        attachments: List[MessageAttachment]
-):
-    media: List[Dict[str, str]] = []
-    documents: List[Doc] = []
-    for attach in attachments:
-        if attach.type == "photo":
-            photo = attach.photo
-            source = max(photo.sizes, key=lambda size: size.width)
-            media.append({
-                "type": attach.type,
-                "media": source.url,
-                "parse_mode": parse_mode
-            })
-        else:
-            documents.append(attach.doc)
-
-    if media:
-        media[0]["caption"] = message_text
-        request_params["media"] = json.dumps(media)
-        response = await session.get(api_url + "sendMediaGroup", params=request_params)
-        await sleep(0.1)
-        await RequestHelper.response_check(response)
-    if documents:
-        bad_response = False
-        if not media:
-            request_params["caption"] = message_text
-            doc = documents[0]
-            response = await RequestHelper.send_document(session=session, doc=doc, params=request_params)
-            if await RequestHelper.response_check(response) is False:
-                bad_response = True
-            # Cut the first document as it's already sent with caption
-            documents = documents[1:]
-            request_params.pop("caption")
-        for doc in documents:
-            await sleep(0.3)
-            response = await RequestHelper.send_document(session=session, doc=doc, params=request_params)
-            if await RequestHelper.response_check(response) is False:
-                bad_response = True
-            if await RequestHelper.response_check(response) is False:
-                bad_response = True
-        if bad_response:
-            raise BadDoctypeError
+        doc = types.InputFile.from_url(url=msg_attachment.doc.url,
+                                       filename=msg_attachment.doc.title)
+        await bot.send_document(chat_id=data_config.destination_id,
+                                caption=message_text,
+                                document=doc,
+                                parse_mode=data_config.parse_mode)
