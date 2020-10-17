@@ -36,7 +36,7 @@ async def handler(message: Message) -> None:
                                text=formatted_message,
                                parse_mode=data_config.parse_mode)
     elif len(attachments) == 1 and not message.fwd_messages:
-        await attachment_handlers.one_attachment(
+        await attachment_handlers.handle_attachment(
             bot,
             formatted_message,
             attachments[0]

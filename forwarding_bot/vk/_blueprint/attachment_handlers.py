@@ -8,15 +8,7 @@ from forwarding_bot.config import data_config
 logger = logging.getLogger("forwarding-bot")
 
 
-async def no_attachments(
-        chat_id: int,
-        message_text: str
-):
-    bot = Bot(data_config.bot_token)
-    await bot.send_message(chat_id=chat_id, text=message_text)
-
-
-async def one_attachment(
+async def handle_attachment(
         bot: Bot,
         message_text: str,
         msg_attachment: MessageAttachment,

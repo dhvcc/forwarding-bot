@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from typing import NamedTuple
 
 from aiogram import Bot, types
@@ -52,7 +52,7 @@ async def get_tree(root: Message):
     return result
 
 
-def parse_text(message_: ParsedMessage, attachment_storage: List) -> str:
+def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, MessageAttachment]]) -> str:
     if not message_.text and not message_.attachments:
         return ""
     if message_.text:
@@ -63,10 +63,11 @@ def parse_text(message_: ParsedMessage, attachment_storage: List) -> str:
     attach_names = {"doc": "документ", "photo": "фото"}
 
     for attach_ in message_.attachments:
-        attachment_storage.append(attach_)
-        text += '{indent}<u>{{{name}_{id}}}</u>\n'.format(indent="    " * message_.indent,
-                                                          name=attach_names[str(attach_.type)],
-                                                          id=len(attachment_storage))
+        name = "{name}_{id}".format(name=attach_names[str(attach_.type)],
+                                    id=len(attachment_storage))
+        attachment_storage.append((name, attach_))
+        text += '{indent}<u>{{{name}}}</u>\n'.format(indent="    " * message_.indent,
+                                                     name=name)
     return text
 
 
@@ -75,10 +76,12 @@ async def handle_nested(
         message: Message
 ):
     """Handle nested forwarded messages"""
-    attachments: List[MessageAttachment] = []
+    attachments: List[Tuple[str, MessageAttachment]] = []
+    message_references: Dict[str, str] = {}
     tree = await get_tree(message)
     logger.debug("Got tree")
 
+    # Prepare text, insert {} and append to attachments
     message_text = ""
     for msg in tree:
         message_text += "{indent}{sender}:\n{text}".format(
@@ -88,28 +91,31 @@ async def handle_nested(
             # Avoid \n on empty text
             text=parse_text(message_=msg, attachment_storage=attachments)
         )
+    logger.debug("Prepared text, sending attachments...")
 
-    logger.debug("Parsed messages")
-
-    await bot.send_message(chat_id=data_config.destination_id,
-                           text=message_text,
-                           parse_mode=data_config.parse_mode)
-
-    logger.info("Sent text, sending docs...")
-
-    for num, attach in enumerate(attachments, 1):
+    # Send attachments
+    for name, attach in attachments:
         if attach.type == "photo":
             source = max(attach.photo.sizes, key=lambda size: size.width)
-            await bot.send_photo(chat_id=data_config.destination_id,
-                                 caption=f"фото_{num}",
-                                 photo=source.url,
-                                 parse_mode=data_config.parse_mode)
+            resp = await bot.send_photo(chat_id=data_config.destination_id,
+                                        caption=name,
+                                        photo=source.url,
+                                        parse_mode=data_config.parse_mode)
             logger.debug("sent photo")
-        elif attach.type == "doc":
+        else:
             data = types.InputFile.from_url(url=attach.doc.url,
                                             filename=attach.doc.title)
-            await bot.send_document(chat_id=data_config.destination_id,
-                                    caption=f"документ_{num}",
-                                    document=data,
-                                    parse_mode=data_config.parse_mode)
+            resp = await bot.send_document(chat_id=data_config.destination_id,
+                                           caption=name,
+                                           document=data,
+                                           parse_mode=data_config.parse_mode)
             logger.debug("sent document")
+
+        message_references[name] = f'<a href="https://t.me/c/{str(resp.chat.id)[2:]}/{resp.message_id}">{name}</a>'
+    logger.debug("Sent attachments, sending text...")
+
+    await bot.send_message(chat_id=data_config.destination_id,
+                           text=message_text.format(**message_references),
+                           parse_mode=data_config.parse_mode)
+
+    logger.info("Sent text")
