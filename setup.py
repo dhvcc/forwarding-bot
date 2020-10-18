@@ -47,7 +47,6 @@ setup(
             "autoflake",
             "autopep8",
             "pyupgrade",
-            "reorder-python-imports"
         ]
     },
     project_urls={

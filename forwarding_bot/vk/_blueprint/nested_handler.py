@@ -1,15 +1,15 @@
 import logging
-from typing import Dict, List, Tuple
-from typing import NamedTuple
+from typing import Dict, List, Tuple, NamedTuple, NoReturn
 
 from aiogram import Bot, types
 from vkbottle.types.objects.messages import Message, MessageAttachment
 from vkbottle.types.objects.users import UserXtrCounters
 
 from forwarding_bot.config import data_config
+from forwarding_bot.settings import PARSE_MODE
 from .message_helper import MessageHelper
 
-logger = logging.getLogger("forwarding-bot")
+logger = logging.getLogger(__name__)
 
 ParsedMessage = NamedTuple(
     "ParsedMessage",
@@ -22,7 +22,7 @@ ParsedMessage = NamedTuple(
 )
 
 
-async def get_tree(root: Message):
+async def get_tree(root: Message) -> List[ParsedMessage]:
     sender_cache: Dict[int, UserXtrCounters] = {}
     result: List[ParsedMessage] = []
 
@@ -60,7 +60,10 @@ def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, Mess
     else:
         text = ""
 
-    attach_names = {"doc": "документ", "photo": "фото"}
+    attach_names = {
+        "doc": "документ",
+        "photo": "фото",
+    }
 
     for attach_ in message_.attachments:
         name = "{name}_{id}".format(name=attach_names[str(attach_.type)],
@@ -68,14 +71,21 @@ def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, Mess
         attachment_storage.append((name, attach_))
         text += '{indent}<u>{{{name}}}</u>\n'.format(indent="    " * message_.indent,
                                                      name=name)
+
     return text
 
 
 async def handle_nested(
         bot: Bot,
         message: Message
-):
-    """Handle nested forwarded messages"""
+) -> NoReturn:
+    """
+    Handle nested forwarded messages
+    1. Parse fwd_messages tree
+    2. Parse output text, add {} to insert message references with .format()
+    3. Send attachments and generate references
+    4. Format text and insert references, send the text
+    """
     attachments: List[Tuple[str, MessageAttachment]] = []
     message_references: Dict[str, str] = {}
     tree = await get_tree(message)
@@ -97,25 +107,29 @@ async def handle_nested(
     for name, attach in attachments:
         if attach.type == "photo":
             source = max(attach.photo.sizes, key=lambda size: size.width)
-            resp = await bot.send_photo(chat_id=data_config.destination_id,
-                                        caption=name,
-                                        photo=source.url,
-                                        parse_mode=data_config.parse_mode)
+            response = await bot.send_photo(chat_id=data_config.destination_id,
+                                            caption=name,
+                                            photo=source.url,
+                                            parse_mode=PARSE_MODE)
             logger.debug("sent photo")
         else:
             data = types.InputFile.from_url(url=attach.doc.url,
                                             filename=attach.doc.title)
-            resp = await bot.send_document(chat_id=data_config.destination_id,
-                                           caption=name,
-                                           document=data,
-                                           parse_mode=data_config.parse_mode)
+            response = await bot.send_document(chat_id=data_config.destination_id,
+                                               caption=name,
+                                               document=data,
+                                               parse_mode=PARSE_MODE)
             logger.debug("sent document")
 
-        message_references[name] = f'<a href="https://t.me/c/{str(resp.chat.id)[2:]}/{resp.message_id}">{name}</a>'
+        # response.chat_id is -10...0chat_id, so [2:] cuts the '-1' out
+        message_references[name] = f'<a href="https://t.me/c/{str(response.chat.id)[2:]}/{response.message_id}">' \
+                                   f'{name}' \
+                                   f'</a>'
     logger.debug("Sent attachments, sending text...")
 
     await bot.send_message(chat_id=data_config.destination_id,
                            text=message_text.format(**message_references),
-                           parse_mode=data_config.parse_mode)
+                           parse_mode=PARSE_MODE)
 
+    # May be collect the responses and return them as a list?
     logger.info("Sent text")

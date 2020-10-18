@@ -1,22 +1,21 @@
 from asyncio import sleep
-from typing import List
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+from typing import List, Optional
+
 from vkbottle.api import API
-from vkbottle.user import Message
 from vkbottle.types.objects.messages import MessageAttachment
 from vkbottle.types.objects.users import UserXtrCounters
-import pytz
+from vkbottle.user import Message
+
+from forwarding_bot.settings import MINSK_TZ
 
 
 class MessageHelper:
-    _utc3_offset = timedelta(hours=3)
-    _utc3_zone = timezone(offset=_utc3_offset, name="UTC")
-    _tz = pytz.timezone("Europe/Minsk")
 
     @classmethod
     def get_date(cls, message: Message) -> str:
         dt = datetime.fromtimestamp(message.date)
-        now = datetime.now(tz=cls._tz)
+        now = datetime.now(tz=MINSK_TZ)
         if now.date() != dt.date():
             return f"{dt.month}.{dt.day}.{dt.year} "
         return ""
@@ -53,7 +52,7 @@ class MessageHelper:
         ]
 
     @staticmethod
-    async def get_sender(token: str, message: Message) -> UserXtrCounters:
+    async def get_sender(token: Optional[str], message: Message) -> UserXtrCounters:
         api = API(token)
         user_list = await api.users.get(user_ids=str(message.from_id))
         await sleep(0.1)

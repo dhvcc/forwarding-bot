@@ -5,7 +5,7 @@ from vkbottle import User
 from forwarding_bot.vk._middleware import middleware_bp
 from ._blueprint import bot_bp
 
-logger = logging.getLogger("forwarding-bot")
+logger = logging.getLogger(__name__)
 
 
 class VKBot:

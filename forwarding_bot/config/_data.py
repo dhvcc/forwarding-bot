@@ -1,16 +1,17 @@
 import logging
+from argparse import Namespace
 from configparser import ConfigParser
 from os import environ
 from os.path import join
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from forwarding_bot.arguments import ArgsModel, ArgParser
 
 CONFIG_NAME = ".forwarding-bot"
 SECTION_NAME = CONFIG_NAME[1:]
 
-logger = logging.getLogger("forwarding-bot")
+logger = logging.getLogger(__name__)
 
 
 class DataConfig:
@@ -18,15 +19,13 @@ class DataConfig:
 
     def __init__(self):
         self.bot_token: Optional[str] = None
-        self.user_token: Optional[int] = None
+        self.user_token: Optional[str] = None
         self.destination_id: Optional[int] = None
         self.source_id: Optional[int] = None
 
-        self.parse_mode = "HTML"
-
     def load(
             self,
-            arguments_: ArgsModel,
+            arguments_: Union[ArgsModel, Namespace],
             local_config_: ConfigParser,
             global_config_: ConfigParser,
             environment_
@@ -39,7 +38,7 @@ class DataConfig:
         logger.debug("Global config")
         self.load_ini(global_config_)
 
-    def load_cli(self, arguments: ArgsModel):
+    def load_cli(self, arguments: Union[ArgsModel, Namespace]):
         logger.debug("Loading CLI args")
 
         self.bot_token = arguments.bot_token
@@ -100,4 +99,5 @@ data_config.load(arguments_=arg_parser.get_args(),
                  local_config_=local_config,
                  environment_=environ,
                  global_config_=global_config)
-logger.info(f"DataConfig is {data_config}")
+
+# logger.info(f"DataConfig is {data_config}")
