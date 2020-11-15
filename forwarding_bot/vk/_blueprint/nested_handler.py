@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Tuple, NamedTuple, NoReturn
+from typing import Dict, List, Tuple, NamedTuple, NoReturn, Coroutine, Callable
 
 from aiogram import Bot, types
 from vkbottle.types.objects.messages import Message, MessageAttachment
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 ParsedMessage = NamedTuple(
     "ParsedMessage",
     [
-        ("sender", UserXtrCounters),
+        ("sender", str),
         ("text", str),
         ("attachments", List[MessageAttachment]),
         ("indent", int)
@@ -22,7 +22,7 @@ ParsedMessage = NamedTuple(
 )
 
 
-async def get_tree(root: Message) -> List[ParsedMessage]:
+async def get_fwd_tree(root: Message) -> List[ParsedMessage]:
     sender_cache: Dict[int, UserXtrCounters] = {}
     result: List[ParsedMessage] = []
 
@@ -52,15 +52,61 @@ async def get_tree(root: Message) -> List[ParsedMessage]:
     return result
 
 
+async def get_reply_tree(root: Message) -> List[ParsedMessage]:
+    sender_cache: Dict[int, UserXtrCounters] = {}
+    result: List[ParsedMessage] = []
+    # Result will consist of only reply (without attachments, text limited to 100 chars)
+
+    # Reply message
+    reply = root
+
+    if reply.from_id in sender_cache:
+        sender = sender_cache[reply.from_id]
+    else:
+        sender = await MessageHelper.get_sender(data_config.user_token, reply)
+
+    if reply.text or reply.attachments:
+        result.append(ParsedMessage(
+            sender=MessageHelper.get_header(sender, reply),
+            text=reply.text,
+            attachments=MessageHelper.get_valid_attachments(reply),
+            indent=0,
+        ))
+
+    #  Reply target
+    reply_target = root.reply_message
+
+    text = reply_target.text[:97] or "*вложения без текста*"
+    if len(reply_target.text) > 97:
+        text += "..."
+
+    sender = await MessageHelper.get_sender(data_config.user_token, reply_target)
+    sender_cache[sender.id] = sender
+
+    result.append(ParsedMessage(
+        sender=MessageHelper.get_header(sender, reply_target),
+        text=text,
+        attachments=[],
+        indent=1,
+    ))
+
+    return result
+
+
 def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, MessageAttachment]]) -> str:
     if not message_.text and not message_.attachments:
         return ""
     if message_.text:
-        text = "    " * message_.indent + MessageHelper.get_text(message_.text) + "\n"
+        # If text itself contains \n then they should be prefixed with indent
+        split_text = MessageHelper.get_text(message_.text).split("\n")
+        indent_str = "    " * message_.indent
+        parsed_list = [f"{indent_str}{text}\n" for text in split_text]
+        text = "".join(parsed_list)
     else:
         text = ""
 
     attach_names = {
+        "audio_message": "голосовое_сообщение",
         "doc": "документ",
         "photo": "фото",
     }
@@ -77,18 +123,19 @@ def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, Mess
 
 async def handle_nested(
         bot: Bot,
-        message: Message
+        message: Message,
+        tree_getter: Callable[..., Coroutine]
 ) -> NoReturn:
     """
     Handle nested forwarded messages
-    1. Parse fwd_messages tree
+    1. Parse message tree
     2. Parse output text, add {} to insert message references with .format()
     3. Send attachments and generate references
     4. Format text and insert references, send the text
     """
     attachments: List[Tuple[str, MessageAttachment]] = []
     message_references: Dict[str, str] = {}
-    tree = await get_tree(message)
+    tree = await tree_getter(message)
     logger.debug("Got tree")
 
     # Prepare text, insert {} and append to attachments
@@ -112,6 +159,11 @@ async def handle_nested(
                                             photo=source.url,
                                             parse_mode=PARSE_MODE)
             logger.debug("sent photo")
+        elif attach.type == "audio_message":
+            response = await bot.send_voice(chat_id=data_config.destination_id,
+                                            caption=name,
+                                            voice=attach.audio_message.link_ogg,
+                                            parse_mode=PARSE_MODE)
         else:
             data = types.InputFile.from_url(url=attach.doc.url,
                                             filename=attach.doc.title)

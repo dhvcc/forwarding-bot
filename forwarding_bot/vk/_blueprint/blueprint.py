@@ -35,20 +35,25 @@ async def handler(message: Message) -> NoReturn:
     formatted_message = message_template.format(head=MessageHelper.get_header(sender, message),
                                                 text=MessageHelper.get_text(message.text))
 
-    if not attachments and not message.fwd_messages:
-        logger.info("No valid attachments or forwarded messages, sending text")
-        await bot.send_message(chat_id=data_config.destination_id,
-                               text=formatted_message,
-                               parse_mode=PARSE_MODE)
-    elif len(attachments) == 1 and not message.fwd_messages:
+    # This is horrible, I know
+    if message.fwd_messages:
+        await nested_handler.handle_nested(bot=bot, message=message, tree_getter=nested_handler.get_fwd_tree)
+    elif message.reply_message:
+        await nested_handler.handle_nested(bot=bot, message=message, tree_getter=nested_handler.get_reply_tree)
+    elif len(attachments) == 1:
         logger.info("One attachment, calling handler")
         await attachment_handler.handle_attachment(
             bot,
             formatted_message,
             attachments[0]
         )
-    else:
-        await nested_handler.handle_nested(bot=bot, message=message)
+    elif message.attachments:
+        await nested_handler.handle_nested(bot=bot, message=message, tree_getter=nested_handler.get_fwd_tree)
+    elif not message.attachments:
+        logger.info("No valid attachments or forwarded messages, sending text")
+        await bot.send_message(chat_id=data_config.destination_id,
+                               text=formatted_message,
+                               parse_mode=PARSE_MODE)
 
     await bot.close()
     await sleep(0.1)

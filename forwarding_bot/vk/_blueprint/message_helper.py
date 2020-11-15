@@ -17,7 +17,7 @@ class MessageHelper:
         dt = datetime.fromtimestamp(message.date)
         now = datetime.now(tz=MINSK_TZ)
         if now.date() != dt.date():
-            return f"{dt.month}.{dt.day}.{dt.year} "
+            return f"{dt.month}.{dt.day}.{dt.year}"
         return ""
 
     @staticmethod
