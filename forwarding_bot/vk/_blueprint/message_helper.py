@@ -6,6 +6,7 @@ from vkbottle.api import API
 from vkbottle.types.objects.messages import MessageAttachment, ForeignMessage
 from vkbottle.types.objects.users import UserXtrCounters
 from vkbottle.types.objects.video import Video
+from vkbottle.types.objects.wall import Wallpost
 from vkbottle.user import Message
 
 from forwarding_bot.settings import MINSK_TZ
@@ -41,8 +42,12 @@ class MessageHelper:
         return [
             attach
             for attach in message.attachments
-            if attach.type in ("photo", "video", "doc", "sticker", "audio_message")
+            if attach.type in ("photo", "video", "doc", "sticker", "audio_message", "wall")
         ]
+
+    @staticmethod
+    def is_link_attachment(attachment: MessageAttachment) -> bool:
+        return attachment.type in ("video", "wall")
 
     @staticmethod
     def filter_media(attachments: List[MessageAttachment]) -> List[MessageAttachment]:
@@ -60,7 +65,21 @@ class MessageHelper:
         return user_list[0]
 
     @staticmethod
-    def get_video_str(video: Video) -> str:
-        url = f"vk.com/video{video.owner_id}_{video.id}" \
-              f"?access_key={video.access_key or ''}"
-        return f"(Видео {url})"
+    def get_attachment_link(attachment: MessageAttachment) -> str:
+        types = {
+            "video": {
+                "name": "видео",
+                "getter": lambda x: x.video
+            },
+            "wall": {
+                "name": "пост",
+                "getter": lambda x: x.wall
+            },
+        }
+        name = types[str(attachment.type)]["name"]
+        getter = types[str(attachment.type)]["getter"]
+        data: Union[Video, Wallpost] = getter(attachment)
+        owner_id = getattr(data, 'owner_id', None) or getattr(data, 'from_id', None)
+        url = f"vk.com/{attachment.type}{owner_id}_{data.id}" \
+              f"?access_key={data.access_key or ''}"
+        return f"[Вложение {name}: {url}]"

@@ -16,22 +16,21 @@ async def handle_attachment(
         msg_attachment: MessageAttachment,
 ) -> types.Message:
     logger.debug(f"One attachment with type {msg_attachment.type}")
-    if msg_attachment.type == "sticker":
+    if MessageHelper.is_link_attachment(msg_attachment):
+        response = await bot.send_message(chat_id=data_config.destination_id,
+                                          text=message_text +
+                                          MessageHelper.get_attachment_link(msg_attachment),
+                                          parse_mode=PARSE_MODE)
+    elif msg_attachment.type == "sticker":
         response = await bot.send_message(chat_id=data_config.destination_id,
                                           text=message_text + "*sticker*",
                                           parse_mode=PARSE_MODE)
-
     elif msg_attachment.type == "photo":
         source = max(msg_attachment.photo.sizes, key=lambda size: size.width)
         response = await bot.send_photo(chat_id=data_config.destination_id,
                                         caption=message_text,
                                         photo=source.url,
                                         parse_mode=PARSE_MODE)
-    elif msg_attachment.type == "video":
-        response = await bot.send_message(chat_id=data_config.destination_id,
-                                          text=message_text +
-                                          MessageHelper.get_video_str(msg_attachment.video),
-                                          parse_mode=PARSE_MODE)
     elif msg_attachment.type == "audio_message":
         response = await bot.send_voice(chat_id=data_config.destination_id,
                                         caption=message_text,
