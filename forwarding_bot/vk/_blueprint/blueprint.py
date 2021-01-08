@@ -1,9 +1,10 @@
 import logging
 from asyncio import sleep
+from typing import NoReturn
 
 from aiogram import Bot
 from vkbottle.user import Blueprint, Message
-from typing import NoReturn
+
 from forwarding_bot.config import data_config
 from forwarding_bot.settings import PARSE_MODE
 from . import attachment_handler, nested_handler
@@ -16,7 +17,16 @@ bot_bp = Blueprint()
 
 @bot_bp.on.chat_message()
 async def handler(message: Message) -> NoReturn:
-    """Default handler that handles every message"""
+    """
+    Default handler that handles every message
+    ---
+    Attachment types:
+    1. Audio Message/Photo
+    2. Video (sent as a link because of TG API limits and also to save TG space)
+    3. Sticker (cannot be parsed, so instead just becomes "*sticker*")
+    Handling:
+    - If there are no *valid* attachments, then only text will be sent
+    """
     logger.info("New message")
     logger.debug(str(message))
     # VK attachment limit workaround
@@ -51,9 +61,11 @@ async def handler(message: Message) -> NoReturn:
         await nested_handler.handle_nested(bot=bot, message=message, tree_getter=nested_handler.get_fwd_tree)
     elif not message.attachments:
         logger.info("No valid attachments or forwarded messages, sending text")
+
         await bot.send_message(chat_id=data_config.destination_id,
                                text=formatted_message,
                                parse_mode=PARSE_MODE)
 
     await bot.close()
     await sleep(0.1)
+    return

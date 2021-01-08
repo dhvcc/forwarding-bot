@@ -5,6 +5,7 @@ from vkbottle.types.objects.messages import MessageAttachment
 
 from forwarding_bot.config import data_config
 from forwarding_bot.settings import PARSE_MODE
+from .message_helper import MessageHelper
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,11 @@ async def handle_attachment(
                                         caption=message_text,
                                         photo=source.url,
                                         parse_mode=PARSE_MODE)
+    elif msg_attachment.type == "video":
+        response = await bot.send_message(chat_id=data_config.destination_id,
+                                          text=message_text +
+                                          MessageHelper.get_video_str(msg_attachment.video),
+                                          parse_mode=PARSE_MODE)
     elif msg_attachment.type == "audio_message":
         response = await bot.send_voice(chat_id=data_config.destination_id,
                                         caption=message_text,

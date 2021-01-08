@@ -112,11 +112,15 @@ def parse_text(message_: ParsedMessage, attachment_storage: List[Tuple[str, Mess
     }
 
     for attach_ in message_.attachments:
-        name = "{name}_{id}".format(name=attach_names[str(attach_.type)],
-                                    id=len(attachment_storage))
-        attachment_storage.append((name, attach_))
-        text += '{indent}<u>{{{name}}}</u>\n'.format(indent="    " * message_.indent,
-                                                     name=name)
+        if attach_.type == "video":
+            text += '{indent}<u>{link}</u>\n'.format(indent="    " * message_.indent,
+                                                     link=MessageHelper.get_video_str(attach_.video))
+        else:
+            name = "{name}_{id}".format(name=attach_names[str(attach_.type)],
+                                        id=len(attachment_storage))
+            attachment_storage.append((name, attach_))
+            text += '{indent}<u>{{{name}}}</u>\n'.format(indent="    " * message_.indent,
+                                                         name=name)
 
     return text
 
