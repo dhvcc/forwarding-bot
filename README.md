@@ -1,5 +1,10 @@
 # Forwarding bot
 
+**DISCONTINUED/Поддержка прекращена**
+
+It still works, but I no longer need this project or care about it. (the code is terrible though)
+Бот до сих пор работает, но он мне уже не нужен, да и интерес в нём пропал. (код ужасный, написан на коленке, я знаю)
+
 ### Перенесите свою беседу в Telegram
 
 [![Downloads](https://pepy.tech/badge/forwarding-bot)](https://pepy.tech/project/forwarding-bot)
